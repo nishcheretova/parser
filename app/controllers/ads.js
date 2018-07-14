@@ -9,13 +9,14 @@ const { wrap: async } = require('co');
 const Ad = mongoose.model('Ad');
 const needle = require('needle');
 const cheerio = require('cheerio');
-const config = require('./../../config');
+const config = require('/config');
 
-exports.listAds = async(function* (req, res) {
-
-});
+// exports.listAds = async(function* (req, res) {
+//
+// });
 
 exports.parseAds = async(function* (req, res) {
+    console.log(config.url);
     needle.get(config.url, function (err, res) {
         if (err) throw err;
         callback();

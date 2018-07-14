@@ -15,6 +15,7 @@ const config = require('./config');
 const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
 
+
 const app = express();
 
 module.exports = app;
@@ -40,6 +41,6 @@ function listen () {
 }
 
 function connect () {
-    var options = { server: { socketOptions: { keepAlive: 1 } } };
+    const options = { server: { socketOptions: { keepAlive: 1 } } };
     return mongoose.connect(config.db, options).connection;
 }
