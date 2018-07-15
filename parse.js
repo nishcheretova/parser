@@ -1,7 +1,13 @@
 const needle = require('needle');
 const cheerio = require('cheerio');
+const mongoose = require('mongoose');
+const Ad = require('./app/models/ad');
 const hostName = 'http://irr.by';
 const countAds = process.argv[2] ? process.argv[2] : 50;
+
+const optionsMongo = { server: { socketOptions: { keepAlive: 1 } } };
+mongoose.connect('mongodb://localhost/parser', optionsMongo);
+const db = mongoose.connection;
 
 const options = {
     follow_max: 5,
@@ -14,18 +20,35 @@ const url = 'http://irr.by/realestate/longtime/' + countParam;
 
 let adsPromise = getAdsByPageUrl(url, countAds);
 
-adsPromise.then((ads) => console.log(ads));
+adsPromise.then((ads) => saveAds(ads));
+
+function saveAds(ads) {
+    for (const ad in ads) {
+        const adModel = new Ad(ads[ad]);
+        adModel.save(function (err, ad) {
+            if (err) return console.error(err);
+        });
+    }
+}
 
 function parseAd(src) {
     return new Promise((resolve, reject) => {
         needle.get(src, options, (err, resp) => {
             let $ = cheerio.load(resp.body);
 
+            const geoX = $('#geo_x');
+            const geoY = $('#geo_y');
+
             let adObject = {
-                content: $('p.text').text(),
-                geoX: $('#geo_x').val(),
-                geoY: $('#geo_y').val(),
+                body: $('p.text').text()
             };
+
+            if (geoX.length && geoY.length) {
+                adObject.location = [
+                    geoX.val(),
+                    geoY.val()
+                ];
+            }
             resolve(adObject);
         });
     });
@@ -39,7 +62,6 @@ function getAdsByPageUrl(pageUrl, remaining) {
         let adsSet = [];
 
         ads.each((i, ad) => {
-            console.log(i);
             if (i >= remaining) {
                 return false;
             }
@@ -48,7 +70,7 @@ function getAdsByPageUrl(pageUrl, remaining) {
                 const src = adWrapper.find('.add_title').attr('href');
 
                 parseAd(src).then((adObject) => {
-                    adObject.date = adWrapper.find('.add_data').text();
+                    adObject.createdAt = parseStringToDate(adWrapper.find('.add_data').text());
                     adObject.title = adWrapper.find('.add_title').text();
                     resolve(adObject);
                 });
@@ -76,6 +98,15 @@ function getAdsByPageUrl(pageUrl, remaining) {
             }
         }).then((adsl) => adsl);
     });
+}
+
+function parseStringToDate(stringDate) {
+    let arrayDateTime = stringDate.split(', ');
+    let arrayDate = arrayDateTime[1].split('.');
+
+    let timeISO = arrayDate[2] + '-' + arrayDate[1] + '-' + arrayDate[0] + 'T' + arrayDateTime[0];
+
+    return new Date(timeISO);
 }
 
 function getNextPageUrl($) {

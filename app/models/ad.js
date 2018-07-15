@@ -7,11 +7,11 @@ const Schema = mongoose.Schema;
 /**
  * Ad Schema
  */
-var AdSchema = new Schema({
-    title: { type : String, default : '', trim : true },
-    body: { type : String, default : '', trim : true },
-    location: { type: { type: String, default:'Point' }, coordinates: [Number] },
-    createdAt: { type: Date, default: Date.now }
+const AdSchema = new Schema({
+    title: {type: String},
+    body: {type: String},
+    location: {type: String, coordinates: [Number]},
+    createdAt: {type: Date}
 });
 
 /**
@@ -23,15 +23,13 @@ AdSchema.path('body').required(true, 'Ad body cannot be blank');
 /**
  * Methods
  */
-AdSchema.methods = {
-
-};
+AdSchema.methods = {};
 
 /**
  * Statics
  */
-AdSchema.statics = {
+AdSchema.statics = {};
+const Ad = mongoose.model('Ad', AdSchema);
+module.exports = Ad;
 
-};
 
-mongoose.model('Ad', AdSchema);
