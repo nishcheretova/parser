@@ -22,7 +22,6 @@ function parseAd(src) {
             let $ = cheerio.load(resp.body);
 
             let adObject = {
-                title: $('h1').text(),
                 content: $('p.text').text(),
                 geoX: $('#geo_x').val(),
                 geoY: $('#geo_y').val(),
@@ -40,12 +39,17 @@ function getAdsByPageUrl(pageUrl, remaining) {
         let adsSet = [];
 
         ads.each((i, ad) => {
+            console.log(i);
+            if (i >= remaining) {
+                return false;
+            }
             let adCheckPromise = new Promise((resolve, reject) => {
                 const adWrapper = $(ad);
                 const src = adWrapper.find('.add_title').attr('href');
 
                 parseAd(src).then((adObject) => {
                     adObject.date = adWrapper.find('.add_data').text();
+                    adObject.title = adWrapper.find('.add_title').text();
                     resolve(adObject);
                 });
             });
