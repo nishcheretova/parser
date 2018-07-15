@@ -5,6 +5,7 @@
  */
 
 require('dotenv').config();
+const mongooseConnection = require('./mongoose_connet');
 
 const fs = require('fs');
 const join = require('path').join;
@@ -29,18 +30,12 @@ fs.readdirSync(models)
 require('./config/express')(app);
 require('./config/routes')(app);
 
-connect()
-    .on('error', console.log)
-    .on('disconnected', connect)
-    .once('open', listen);
+mongooseConnection.on("connected", function(ref) {
+    listen();
+});
 
 function listen () {
     if (app.get('env') === 'test') return;
     app.listen(port);
     console.log('Express app started on port ' + port);
-}
-
-function connect () {
-    const options = { server: { socketOptions: { keepAlive: 1 } } };
-    return mongoose.connect(config.db, options).connection;
 }

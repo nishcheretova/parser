@@ -10,7 +10,17 @@ const Schema = mongoose.Schema;
 const AdSchema = new Schema({
     title: {type: String},
     body: {type: String},
-    location: {type: String, coordinates: [Number]},
+    location: {
+        type: {
+            type: String,
+            enum: 'Point',
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            default: [0, 0]
+        }
+    },
     createdAt: {type: Date}
 });
 
@@ -20,10 +30,27 @@ const AdSchema = new Schema({
 AdSchema.path('title').required(true, 'Ad title cannot be blank');
 AdSchema.path('body').required(true, 'Ad body cannot be blank');
 
+AdSchema.index({ "location": "2dsphere" });
+AdSchema.index({ createdAt: 1, title: -1 }, { unique: true });
+
 /**
  * Methods
  */
-AdSchema.methods = {};
+AdSchema.methods = {
+    getNearestList: (lat, long, radius) => {
+        this.find({
+            location: {
+                $near: {
+                    $maxDistance: radius,
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [lat, long]
+                    }
+                }
+            }
+        });
+    }
+};
 
 /**
  * Statics
@@ -31,5 +58,3 @@ AdSchema.methods = {};
 AdSchema.statics = {};
 const Ad = mongoose.model('Ad', AdSchema);
 module.exports = Ad;
-
-

@@ -1,13 +1,9 @@
+require('./mongoose_connet');
 const needle = require('needle');
 const cheerio = require('cheerio');
-const mongoose = require('mongoose');
 const Ad = require('./app/models/ad');
 const hostName = 'http://irr.by';
 const countAds = process.argv[2] ? process.argv[2] : 50;
-
-const optionsMongo = { server: { socketOptions: { keepAlive: 1 } } };
-mongoose.connect('mongodb://localhost/parser', optionsMongo);
-const db = mongoose.connection;
 
 const options = {
     follow_max: 5,
@@ -44,10 +40,13 @@ function parseAd(src) {
             };
 
             if (geoX.length && geoY.length) {
-                adObject.location = [
-                    geoX.val(),
-                    geoY.val()
-                ];
+                adObject.location = {
+                    type: "Point",
+                    coordinates: [
+                        parseFloat(geoX.val()),
+                        parseFloat(geoY.val())
+                    ],
+                };
             }
             resolve(adObject);
         });
@@ -90,8 +89,7 @@ function getAdsByPageUrl(pageUrl, remaining) {
         return new Promise((resolve, reject) => {
             if (adsPromise) {
                 adsPromise.then((prevAds) => {
-                    adsSet = adsSet.concat(prevAds);
-                    resolve(adsSet);
+                    Promise.all(adsSet).then((parsedAds) => resolve(parsedAds.concat(prevAds)));
                 })
             } else {
                 Promise.all(adsSet).then((parsedAds) => resolve(parsedAds));
