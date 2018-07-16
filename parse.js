@@ -64,16 +64,8 @@ function getAdsByPageUrl(pageUrl, remaining) {
             if (i >= remaining) {
                 return false;
             }
-            let adCheckPromise = new Promise((resolve, reject) => {
-                const adWrapper = $(ad);
-                const src = adWrapper.find('.add_title').attr('href');
 
-                parseAd(src).then((adObject) => {
-                    adObject.createdAt = parseStringToDate(adWrapper.find('.add_data').text());
-                    adObject.title = adWrapper.find('.add_title').text();
-                    resolve(adObject);
-                });
-            });
+            let adCheckPromise = checkAd($, ad);
             adsSet.push(adCheckPromise);
         });
 
@@ -95,6 +87,19 @@ function getAdsByPageUrl(pageUrl, remaining) {
                 Promise.all(adsSet).then((parsedAds) => resolve(parsedAds));
             }
         }).then((adsl) => adsl);
+    });
+}
+
+function checkAd($, ad){
+    return new Promise((resolve, reject) => {
+        const adWrapper = $(ad);
+        const src = adWrapper.find('.add_title').attr('href');
+
+        parseAd(src).then((adObject) => {
+            adObject.createdAt = parseStringToDate(adWrapper.find('.add_data').text());
+            adObject.title = adWrapper.find('.add_title').text();
+            resolve(adObject);
+        });
     });
 }
 

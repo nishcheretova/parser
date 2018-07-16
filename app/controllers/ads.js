@@ -11,16 +11,15 @@ const needle = require('needle');
 const adModel = require('../models/ad');
 const config = require('../../config');
 
-exports.listAds = async(function* (req, res) {
-    res.json({'body': 123});
+const DEFAULT_LONG = 53.906643;
+const DEFAULT_LAT = 27.458462;
+const DEFAULT_RADIUS = 10;
 
-});
 
-exports.listAds2 = function (req, res) {
-    let long = req.query.long || 53.906643;
-    let lat = req.query.lat || 27.458462;
-    let radius = req.query.radius || 10;
-
+exports.listAds = function (req, res) {
+    let long = req.query.long || DEFAULT_LONG;
+    let lat = req.query.lat || DEFAULT_LAT;
+    let radius = req.query.radius || DEFAULT_RADIUS;
 
     return adModel.find({
         location: {
@@ -44,16 +43,15 @@ exports.getAdsList = async(function* (req, res) {
         if (err) throw err;
         callback();
     });
-    // exports.pa
 });
 
 exports.listWords = function (req, res) {
     var o = {};
     o.map = function () {
-        var words = this.body.split(/(\s|\.|\d)+/);
+        var words = this.body.toLowerCase().split(/(\s|\.|\d)+/);
 
         for (var i = 0; i < words.length; i++) {
-            let word = words[i].trim();
+            var word = words[i].trim();
             if (word) {
                 emit(word, 1);
             }

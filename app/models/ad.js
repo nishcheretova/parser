@@ -38,13 +38,13 @@ AdSchema.index({ createdAt: 1, title: -1 }, { unique: true });
  */
 AdSchema.methods = {
     getNearestList: (lat, long, radius) => {
-        this.find({
+        return this.find({
             location: {
                 $near: {
-                    $maxDistance: radius,
+                    $maxDistance: radius * 1000,
                     $geometry: {
                         type: "Point",
-                        coordinates: [lat, long]
+                        coordinates: [long, lat]
                     }
                 }
             }

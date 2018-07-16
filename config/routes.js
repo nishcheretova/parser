@@ -12,7 +12,7 @@ const ads = require('../app/controllers/ads');
  */
 
 module.exports = function (app) {
-    app.get('/api/ads', ads.listAds2);
+    app.get('/api/ads', ads.listAds);
     app.get('/api/words', ads.listWords);
 
 
